@@ -1,0 +1,12 @@
+AGENTS.md
+CLAUDE.md
+
+# compiled binaries (go build output) — never source, always rebuildable
+*.exe
+*.test
+
+# runtime SQLite data (once ingest exists)
+data/
+*.db
+*.db-wal
+*.db-shm
