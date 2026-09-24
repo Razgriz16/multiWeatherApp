@@ -2,7 +2,7 @@
 
 This document records the original idea, the architecture that came out of
 it, and the reasoning behind each technology choice. Kept for future-me and
-for anyone (recruiters included) looking at the reasoning behind the repo.
+for anyone looking at the reasoning behind the repo.
 
 ## 1. Original Plan
 
@@ -223,8 +223,8 @@ itself lives here.)
 |---|---|---|
 | C | SQLite amalgamation compiles straight in, zero-dependency static binary; genuinely enjoyed writing it | More manual; not the better career bet |
 | **Go** | Cross-compiles to one static binary for the ARM deploy target (`GOOS=linux GOARCH=arm64 go build`), no interpreter, no virtualenv, no system dependencies; pure-Go SQLite drivers (§5.3) avoid needing a C toolchain on the target device; easiest learning curve of the three; use cases (backend/cloud/infra) map onto the majority of general software-engineering job postings, unlike C's narrower embedded/systems niche | Garbage-collected |
-| Rust | Highest current recruiter buzz; memory-safe; single static binary | Steepest learning curve of the three; would be learning it from scratch for this project |
-| C++ | — | Ruled out early — unfamiliar, and the extra complexity over C isn't needed for this job |
+| Rust | Highest current buzz; memory-safe; single static binary | Steepest learning curve of the three; would be learning it from scratch for this project |
+| C++ |Fast as C and well structured |  Ruled out early — unfamiliar, and the extra complexity over C isn't needed for this job |
 
 **Decision: Go.** Led by the technical constraint: the deploy target is
 a low-power ARM device (own PC or phone), and Go produces a
