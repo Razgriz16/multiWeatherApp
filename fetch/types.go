@@ -1,11 +1,5 @@
 package main
 
-type location struct {
-	Name      string
-	Latitude  float64
-	Longitude float64
-}
-
 type forecastResponse struct {
 	Hourly struct {
 		Time             []string  `json:"time"`

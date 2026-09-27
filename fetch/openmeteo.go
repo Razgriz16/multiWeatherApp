@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"multiweather/model"
 	"net/http"
 )
 
-func fetchForecast(loc location) {
+func fetchForecast(loc model.Location) {
 	url := fmt.Sprintf(
 		"https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f&hourly=temperature_2m&models=ecmwf_ifs025,gfs_seamless,icon_seamless",
 		loc.Latitude, loc.Longitude,
