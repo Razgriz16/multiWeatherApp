@@ -367,6 +367,14 @@ Historical Weather API (ERA5 reanalysis) as ground truth. Licence: CC BY
   is needed as a fallback, the three-way-tie rule isn't chosen yet:
   most-severe-wins vs. null/"no consensus". Decide when it's actually
   hit.
+- **Open-Meteo's hourly timestamps may not be UTC.** The Forecast API
+  returns local time for the requested location by default, and only
+  returns UTC if the request explicitly passes `timezone=UTC`. §4/§7
+  already require `readings`/`aggregates` timestamps to be UTC — confirm
+  which one Open-Meteo is actually sending before `ingest` stores
+  `valid_time` as-is, since two locations' local times aren't comparable
+  and storing local time silently violates the UTC assumption throughout
+  the schema. Resolve when writing the fetch/normalize step, not before.
 - **Per-user source selection.** Letting a viewer toggle individual
   providers on/off is future exploration, not a v1 requirement — v1's
   source set is fixed to all 3 models for every active location (§5.1).
