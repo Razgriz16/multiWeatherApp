@@ -1,4 +1,4 @@
-package main
+package fetch
 
 import (
 	"encoding/json"
@@ -26,7 +26,7 @@ type geonamesResponse struct {
 	} `json:"geonames"`
 }
 
-func geocode(name, country string) (model.Location, error) {
+func geocode(name string, country string) (model.Location, error) {
 	username := os.Getenv("GEONAMES_USERNAME")
 	if username == "" {
 		return model.Location{}, errors.New("GEONAMES_USERNAME is not set")

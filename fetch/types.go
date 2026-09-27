@@ -1,4 +1,4 @@
-package main
+package fetch
 
 type forecastResponse struct {
 	Hourly struct {

@@ -1,16 +1,19 @@
-package main
+package fetch
 
 import (
 	"encoding/json"
 	"fmt"
 	"multiweather/model"
 	"net/http"
+	"strings"
 )
 
-func fetchForecast(loc model.Location) {
+var Models = []string{"ecmwf_ifs025", "gfs_seamless", "icon_seamless"}
+
+func FetchForecast(loc model.Location, models []string) {
 	url := fmt.Sprintf(
-		"https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f&hourly=temperature_2m&models=ecmwf_ifs025,gfs_seamless,icon_seamless",
-		loc.Latitude, loc.Longitude,
+		"https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f&hourly=temperature_2m&models=%s",
+		loc.Latitude, loc.Longitude, strings.Join(models, ","),
 	)
 
 	resp, err := http.Get(url)

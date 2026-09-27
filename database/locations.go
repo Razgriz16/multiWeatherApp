@@ -36,3 +36,30 @@ func AddLocation(db *sql.DB, p model.Location) (inserted bool, err error) {
 	}
 	return n == 1, nil
 }
+
+func GetActiveLocations(db *sql.DB) ([]model.Location, error) {
+	rows, err := db.Query(
+		`SELECT id, name, latitude, longitude, timezone, active, notify, created_at
+		 FROM locations WHERE active = 1`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var locations []model.Location
+	for rows.Next() {
+		var loc model.Location
+		if err := rows.Scan(
+			&loc.ID, &loc.Name, &loc.Latitude, &loc.Longitude,
+			&loc.Timezone, &loc.Active, &loc.Notify, &loc.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		locations = append(locations, loc)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return locations, nil
+}

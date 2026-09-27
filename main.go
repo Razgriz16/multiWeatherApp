@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"multiweather/database"
+	"multiweather/fetch"
 )
 
 func main() {
@@ -18,20 +19,13 @@ func main() {
 	}
 	defer db.Close()
 
-	p, err := geocode("Talca", "CL")
+	locations, err := database.GetActiveLocations(db)
 	if err != nil {
-		fmt.Println("geocode failed:", err)
+		fmt.Println("load locations failed:", err)
 		return
 	}
 
-	inserted, err := database.AddLocation(db, p)
-	if err != nil {
-		fmt.Println("insert failed:", err)
-		return
+	for _, loc := range locations {
+		fetch.FetchForecast(loc, fetch.Models)
 	}
-	if !inserted {
-		fmt.Println(p.Name, "is already tracked")
-		return
-	}
-	fmt.Println("added", p.Name)
 }
