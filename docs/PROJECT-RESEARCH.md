@@ -362,19 +362,19 @@ Historical Weather API (ERA5 reanalysis) as ground truth. Licence: CC BY
   current hour figures for all three v1 models aren't independently
   confirmed here; check the live model-status page before relying on a
   specific number.
-- **Condition consolidation tie-break (§4).** If threshold-derivation
-  from numeric fields doesn't cleanly cover every case and majority vote
-  is needed as a fallback, the three-way-tie rule isn't chosen yet:
-  most-severe-wins vs. null/"no consensus". Decide when it's actually
-  hit.
-- **Open-Meteo's hourly timestamps may not be UTC.** The Forecast API
-  returns local time for the requested location by default, and only
-  returns UTC if the request explicitly passes `timezone=UTC`. §4/§7
-  already require `readings`/`aggregates` timestamps to be UTC — confirm
-  which one Open-Meteo is actually sending before `ingest` stores
-  `valid_time` as-is, since two locations' local times aren't comparable
-  and storing local time silently violates the UTC assumption throughout
-  the schema. Resolve when writing the fetch/normalize step, not before.
+- **Condition consolidation across sources (§4).** `conditions` now
+  holds Open-Meteo's 29 raw WMO codes directly (2026-09-27, see decision
+  log), not a collapsed 6-category set — so this is now "how does an
+  `aggregates` row pick one WMO code from 3 sources," not a 6-way
+  category vote. Tie-break rule still not chosen: most-severe-wins vs.
+  null/"no consensus". Decide when it's actually hit.
+- ~~Open-Meteo's hourly timestamps: UTC or local?~~ — resolved
+  2026-09-27: verified live against a non-UTC location (Santiago,
+  UTC-3) — with no `timezone=` parameter at all, Open-Meteo defaults to
+  `utc_offset_seconds: 0` (UTC). It only switches to local time if the
+  request explicitly passes `timezone=auto` or a named zone. `fetch`'s
+  URL never sets that parameter, so `valid_time` is already UTC as
+  stored — no code change needed.
 - **Per-user source selection.** Letting a viewer toggle individual
   providers on/off is future exploration, not a v1 requirement — v1's
   source set is fixed to all 3 models for every active location (§5.1).
@@ -462,3 +462,23 @@ Historical Weather API (ERA5 reanalysis) as ground truth. Licence: CC BY
   ~184,000 rows/year/location, ~18 MB/year/location, scaling with active
   locations and cron frequency (§4) — the old daily-granularity figures
   were stale.
+- **2026-09-27** — `sources` seeded (`ecmwf`/`gfs`/`icon`, provider
+  `open-meteo`) via `schema.sql`; was empty since the table was created,
+  blocking any `readings` insert.
+- **2026-09-27** — `conditions` redesigned: one row per Open-Meteo WMO
+  `weather_code` (29 rows) with its own description text, replacing the
+  original 6-category placeholder. Kept a surrogate `id` (not `code`
+  itself) as the FK target `readings`/`aggregates` point at — same
+  reasoning as `sources.id` vs. `sources.name`, decouples storage from
+  one provider's numbering if a second provider is ever added (§5.1).
+  No `provider` column yet — only one code scheme exists today, adding
+  one now would be disambiguating against nothing.
+- **2026-09-27** — `fetch`/`normalize`/`store` wired end to end:
+  `FetchForecast` returns data instead of printing; `NormalizeReadings`
+  turns one response into `[]model.Reading`; `InsertReadings` batches
+  one transaction with `ON CONFLICT DO NOTHING` (§5.3).
+- **2026-09-27** — `issued_at` truncated to the UTC day, not the second,
+  in `main.go` — matches v1's once-daily cadence (§3) and restores the
+  crash-retry idempotency `ON CONFLICT` is supposed to provide (a
+  second-precision timestamp made every process start a "new" run,
+  even a same-day retry).
