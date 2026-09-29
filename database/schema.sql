@@ -1,12 +1,56 @@
 CREATE TABLE IF NOT EXISTS sources (
-    id       INTEGER PRIMARY KEY,
-    provider TEXT NOT NULL,        -- e.g. 'open-meteo'
-    name     TEXT NOT NULL UNIQUE  -- e.g. 'ecmwf', 'gfs', 'icon'
+    id        INTEGER PRIMARY KEY,
+    provider  TEXT NOT NULL,        -- e.g. 'open-meteo'
+    name      TEXT NOT NULL UNIQUE, -- e.g. 'ecmwf', 'gfs', 'icon'
+    api_model TEXT NOT NULL UNIQUE  -- provider's own model id, e.g. 'ecmwf_ifs025'.
+                                     -- forecastResponse (fetch/types.go) has one
+                                     -- hardcoded field per model — adding a row here
+                                     -- doesn't make it decode on its own.
 );
+-- One row per Open-Meteo WMO weather_code — the actual values a model
+-- can return, not a collapsed category. How an *aggregate* row picks
+-- one of these across 3 sources is still an open question
+-- (docs/PROJECT-RESEARCH.md §7); nothing here needs to pre-decide that.
 CREATE TABLE IF NOT EXISTS conditions (
-    id   INTEGER PRIMARY KEY,
-    code TEXT NOT NULL UNIQUE      -- 'clear', 'rain', 'overcast', 'snow', 'fog', 'thunderstorm'
+    id          INTEGER PRIMARY KEY,
+    code        INTEGER NOT NULL UNIQUE, -- Open-Meteo's WMO weather_code
+    description TEXT NOT NULL            -- Open-Meteo's own text, e.g. 'Heavy rain'
 );
+INSERT OR IGNORE INTO sources (provider, name, api_model) VALUES
+    ('open-meteo', 'ecmwf', 'ecmwf_ifs025'),
+    ('open-meteo', 'gfs',   'gfs_seamless'),
+    ('open-meteo', 'icon',  'icon_seamless');
+
+INSERT OR IGNORE INTO conditions (code, description) VALUES
+    (0,  'Clear sky'),
+    (1,  'Mainly clear'),
+    (2,  'Partly cloudy'),
+    (3,  'Overcast'),
+    (45, 'Fog'),
+    (48, 'Depositing rime fog'),
+    (51, 'Light drizzle'),
+    (53, 'Moderate drizzle'),
+    (55, 'Dense drizzle'),
+    (56, 'Light freezing drizzle'),
+    (57, 'Dense freezing drizzle'),
+    (61, 'Slight rain'),
+    (63, 'Moderate rain'),
+    (65, 'Heavy rain'),
+    (66, 'Light freezing rain'),
+    (67, 'Heavy freezing rain'),
+    (71, 'Slight snowfall'),
+    (73, 'Moderate snowfall'),
+    (75, 'Heavy snowfall'),
+    (77, 'Snow grains'),
+    (80, 'Slight rain showers'),
+    (81, 'Moderate rain showers'),
+    (82, 'Violent rain showers'),
+    (85, 'Slight snow showers'),
+    (86, 'Heavy snow showers'),
+    (95, 'Thunderstorm'),
+    (96, 'Thunderstorm, slight hail'),
+    (97, 'Heavy thunderstorm'),
+    (99, 'Thunderstorm, heavy hail');
 CREATE TABLE IF NOT EXISTS readings (
     id                        INTEGER PRIMARY KEY,
     source_id                 INTEGER NOT NULL REFERENCES sources(id),
