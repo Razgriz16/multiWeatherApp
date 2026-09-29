@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"multiweather/database"
 	"multiweather/fetch"
+	"time"
 )
 
 func main() {
@@ -25,7 +26,39 @@ func main() {
 		return
 	}
 
+	sourceIDs, err := database.SourceIDs(db)
+	if err != nil {
+		fmt.Println("load sources failed:", err)
+		return
+	}
+
+	models, err := database.APIModels(db)
+	if err != nil {
+		fmt.Println("load models failed:", err)
+		return
+	}
+
+	issuedAt := time.Now().UTC().Truncate(24 * time.Hour).Format(time.RFC3339)
+
 	for _, loc := range locations {
-		fetch.FetchForecast(loc, fetch.Models)
+		forecast, err := fetch.FetchForecast(loc, models)
+		if err != nil {
+			fmt.Println(loc.Name, "fetch failed:", err)
+			continue
+		}
+		fetchedAt := time.Now().UTC().Format(time.RFC3339)
+
+		readings, err := fetch.NormalizeReadings(loc, sourceIDs, forecast, issuedAt, fetchedAt)
+		if err != nil {
+			fmt.Println(loc.Name, "normalize failed:", err)
+			continue
+		}
+
+		inserted, err := database.InsertReadings(db, readings)
+		if err != nil {
+			fmt.Println(loc.Name, "insert failed:", err)
+			continue
+		}
+		fmt.Println(loc.Name, "inserted", inserted, "of", len(readings), "readings")
 	}
 }
