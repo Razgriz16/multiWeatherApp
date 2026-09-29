@@ -16,6 +16,7 @@ type modelReadings struct {
 	precipProb  []*float64
 	windSpeed   []*float64
 	windDir     []*float64
+	weatherCode []*int64
 }
 
 // NormalizeReadings turns one forecastResponse into one model.Reading per
@@ -24,14 +25,15 @@ type modelReadings struct {
 func NormalizeReadings(
 	loc model.Location,
 	sourceIDs map[string]int64,
+	conditionIDs map[int64]int64,
 	forecast forecastResponse,
 	issuedAt, fetchedAt string,
 ) ([]model.Reading, error) {
 	h := forecast.Hourly
 	views := []modelReadings{
-		{"ecmwf", h.TemperatureECMWF, h.HumidityECMWF, h.DewPointECMWF, h.PrecipitationECMWF, h.PrecipProbabilityECMWF, h.WindSpeedECMWF, h.WindDirectionECMWF},
-		{"gfs", h.TemperatureGFS, h.HumidityGFS, h.DewPointGFS, h.PrecipitationGFS, h.PrecipProbabilityGFS, h.WindSpeedGFS, h.WindDirectionGFS},
-		{"icon", h.TemperatureICON, h.HumidityICON, h.DewPointICON, h.PrecipitationICON, h.PrecipProbabilityICON, h.WindSpeedICON, h.WindDirectionICON},
+		{"ecmwf", h.TemperatureECMWF, h.HumidityECMWF, h.DewPointECMWF, h.PrecipitationECMWF, h.PrecipProbabilityECMWF, h.WindSpeedECMWF, h.WindDirectionECMWF, h.WeatherCodeECMWF},
+		{"gfs", h.TemperatureGFS, h.HumidityGFS, h.DewPointGFS, h.PrecipitationGFS, h.PrecipProbabilityGFS, h.WindSpeedGFS, h.WindDirectionGFS, h.WeatherCodeGFS},
+		{"icon", h.TemperatureICON, h.HumidityICON, h.DewPointICON, h.PrecipitationICON, h.PrecipProbabilityICON, h.WindSpeedICON, h.WindDirectionICON, h.WeatherCodeICON},
 	}
 
 	var readings []model.Reading
@@ -42,6 +44,13 @@ func NormalizeReadings(
 		}
 
 		for i, t := range h.Time {
+			var conditionID *int64
+			if code := v.weatherCode[i]; code != nil {
+				if id, ok := conditionIDs[*code]; ok {
+					conditionID = &id
+				}
+			}
+
 			readings = append(readings, model.Reading{
 				SourceID:                 sourceID,
 				LocationID:               loc.ID,
@@ -55,6 +64,7 @@ func NormalizeReadings(
 				PrecipitationProbability: v.precipProb[i],
 				WindSpeed:                v.windSpeed[i],
 				WindDirection:            v.windDir[i],
+				ConditionID:              conditionID,
 			})
 		}
 	}

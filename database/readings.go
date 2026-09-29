@@ -20,8 +20,8 @@ func InsertReadings(db *sql.DB, readings []model.Reading) (int64, error) {
 			source_id, location_id, valid_time, issued_at, fetched_at,
 			temperature, humidity, dew_point,
 			precipitation_mm, precipitation_probability,
-			wind_speed, wind_direction
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			wind_speed, wind_direction, condition_id
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT (source_id, location_id, valid_time, issued_at) DO NOTHING`,
 	)
 	if err != nil {
@@ -35,7 +35,7 @@ func InsertReadings(db *sql.DB, readings []model.Reading) (int64, error) {
 			r.SourceID, r.LocationID, r.ValidTime, r.IssuedAt, r.FetchedAt,
 			r.Temperature, r.Humidity, r.DewPoint,
 			r.PrecipitationMM, r.PrecipitationProbability,
-			r.WindSpeed, r.WindDirection,
+			r.WindSpeed, r.WindDirection, r.ConditionID,
 		)
 		if err != nil {
 			return inserted, err

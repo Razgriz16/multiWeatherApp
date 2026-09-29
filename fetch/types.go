@@ -34,5 +34,9 @@ type forecastResponse struct {
 		WindDirectionECMWF []*float64 `json:"wind_direction_10m_ecmwf_ifs025"`
 		WindDirectionGFS   []*float64 `json:"wind_direction_10m_gfs_seamless"`
 		WindDirectionICON  []*float64 `json:"wind_direction_10m_icon_seamless"`
+
+		WeatherCodeECMWF []*int64 `json:"weather_code_ecmwf_ifs025"`
+		WeatherCodeGFS   []*int64 `json:"weather_code_gfs_seamless"`
+		WeatherCodeICON  []*int64 `json:"weather_code_icon_seamless"`
 	} `json:"hourly"`
 }

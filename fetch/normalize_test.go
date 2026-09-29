@@ -33,10 +33,17 @@ func TestNormalizeReadings(t *testing.T) {
 	forecast.Hourly.WindDirectionGFS = []*float64{f(180), f(180)}
 	forecast.Hourly.WindDirectionICON = []*float64{f(180), f(180)}
 
+	code := func(c int64) *int64 { return &c }
+	forecast.Hourly.WeatherCodeECMWF = []*int64{code(0), code(61)}
+	forecast.Hourly.WeatherCodeGFS = []*int64{code(0), code(61)}
+	forecast.Hourly.WeatherCodeICON = []*int64{code(0), nil} // missing hour 1
+	// 61 (rain) deliberately unseeded, to exercise the "unknown code" path
+
 	loc := model.Location{ID: 1}
 	sourceIDs := map[string]int64{"ecmwf": 10, "gfs": 20, "icon": 30}
+	conditionIDs := map[int64]int64{0: 100}
 
-	readings, err := NormalizeReadings(loc, sourceIDs, forecast, "issued", "fetched")
+	readings, err := NormalizeReadings(loc, sourceIDs, conditionIDs, forecast, "issued", "fetched")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,13 +66,36 @@ func TestNormalizeReadings(t *testing.T) {
 	if iconHour1.LocationID != 1 {
 		t.Errorf("expected LocationID 1, got %d", iconHour1.LocationID)
 	}
+	if iconHour1.ConditionID != nil {
+		t.Errorf("expected nil ConditionID for the missing weather_code, got %v", *iconHour1.ConditionID)
+	}
+
+	var ecmwfHour0 *model.Reading
+	for i := range readings {
+		if readings[i].SourceID == 10 && readings[i].ValidTime == "2026-09-27T00:00" {
+			ecmwfHour0 = &readings[i]
+		}
+	}
+	if ecmwfHour0 == nil || ecmwfHour0.ConditionID == nil || *ecmwfHour0.ConditionID != 100 {
+		t.Fatalf("expected ConditionID 100 for weather_code 0, got %+v", ecmwfHour0)
+	}
+
+	var ecmwfHour1 *model.Reading
+	for i := range readings {
+		if readings[i].SourceID == 10 && readings[i].ValidTime == "2026-09-27T01:00" {
+			ecmwfHour1 = &readings[i]
+		}
+	}
+	if ecmwfHour1 == nil || ecmwfHour1.ConditionID != nil {
+		t.Fatalf("expected nil ConditionID for unseeded weather_code 61, got %+v", ecmwfHour1)
+	}
 }
 
 func TestNormalizeReadingsMissingSource(t *testing.T) {
 	var forecast forecastResponse
 	forecast.Hourly.Time = []string{"2026-09-27T00:00"}
 
-	_, err := NormalizeReadings(model.Location{}, map[string]int64{}, forecast, "issued", "fetched")
+	_, err := NormalizeReadings(model.Location{}, map[string]int64{}, map[int64]int64{}, forecast, "issued", "fetched")
 	if err == nil {
 		t.Fatal("expected an error when sourceIDs has no entries")
 	}

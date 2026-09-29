@@ -16,4 +16,5 @@ type Reading struct {
 	PrecipitationProbability *float64
 	WindSpeed                *float64
 	WindDirection            *float64
+	ConditionID              *int64
 }

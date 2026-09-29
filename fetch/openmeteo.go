@@ -9,7 +9,7 @@ import (
 )
 
 const hourlyVars = "temperature_2m,relative_humidity_2m,dew_point_2m," +
-	"precipitation,precipitation_probability,wind_speed_10m,wind_direction_10m"
+	"precipitation,precipitation_probability,wind_speed_10m,wind_direction_10m,weather_code"
 
 func FetchForecast(loc model.Location, models []string) (forecastResponse, error) {
 	url := fmt.Sprintf(
