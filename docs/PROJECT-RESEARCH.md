@@ -381,6 +381,26 @@ Historical Weather API (ERA5 reanalysis) as ground truth. Licence: CC BY
   Would require computing user-selected subsets on the fly from
   `readings`, since a precomputed `aggregates` row over all three
   sources doesn't serve a user who deselects one. Not designed for now.
+- **Centralized error handling.** `main.go`'s `if err != nil { fmt.Println(...); return }`
+  shape repeats once per fallible call, and grows every time a lookup is
+  added to the ingest pipeline (most recently `ConditionIDs`). Idea: a
+  small helper (e.g. `error.go`) to collapse the print-and-bail pattern.
+  Not building yet — revisit once the shape stabilizes, per the Traps
+  convention in CLAUDE.md (twice-corrected/real-bug threshold).
+- **Provider-scoped fetch+normalize, orchestrated by a future `ingest.go`.**
+  `fetch/normalize.go`'s logic (the ecmwf/gfs/icon field-name mapping, WMO
+  code handling) is tied to Open-Meteo's specific JSON shape, not to a
+  provider-agnostic concept — so it may belong folded into `openmeteo.go`
+  (or grouped with `types.go` as one `openmeteo` adapter) behind a single
+  entry point, instead of `main` calling `fetch.FetchForecast` then
+  `fetch.NormalizeReadings` as two separate steps. `main` would then just
+  call something like `openmeteo.Ingest(loc, ...)`. If a second distinct
+  provider is ever added (this section's earlier resolved note on
+  possible v2 providers), a future `ingest.go` would loop over each
+  provider's adapter and hand results to `database.InsertReadings`,
+  instead of `main` knowing a specific provider exists at all. Not
+  building yet — revisit once fetch/normalize's shape stabilizes or a
+  second provider is actually added.
 
 ## 8. Decision Log
 
