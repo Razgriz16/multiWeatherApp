@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"multiweather/aggregates"
 	"multiweather/database"
 	"multiweather/fetch"
 	"time"
@@ -43,6 +44,10 @@ func main() {
 		fmt.Println("load conditions failed:", err)
 		return
 	}
+	conditionCodes := make(map[int64]int64, len(conditionIDs))
+	for code, id := range conditionIDs {
+		conditionCodes[id] = code
+	}
 
 	issuedAt := time.Now().UTC().Truncate(24 * time.Hour).Format(time.RFC3339)
 
@@ -66,5 +71,14 @@ func main() {
 			continue
 		}
 		fmt.Println(loc.Name, "inserted", inserted, "of", len(readings), "readings")
+
+		computedAt := time.Now().UTC().Format(time.RFC3339)
+		aggs := aggregates.ComputeAggregates(readings, conditionCodes, computedAt)
+		aggInserted, err := database.InsertAggregates(db, aggs)
+		if err != nil {
+			fmt.Println(loc.Name, "aggregate insert failed:", err)
+			continue
+		}
+		fmt.Println(loc.Name, "inserted", aggInserted, "of", len(aggs), "aggregates")
 	}
 }
