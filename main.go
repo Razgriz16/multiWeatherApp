@@ -1,10 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"multiweather/aggregates"
 	"multiweather/database"
 	"multiweather/fetch"
+	"multiweather/web"
+	"net/http"
+	"os"
 	"time"
 )
 
@@ -21,6 +25,24 @@ func main() {
 	}
 	defer db.Close()
 
+	if len(os.Args) > 1 && os.Args[1] == "serve" {
+		runServe(db)
+		return
+	}
+	runIngest(db)
+}
+
+// runServe never fetches or aggregates — purely reads what runIngest
+// already wrote (docs/PROJECT-RESEARCH.md §3).
+func runServe(db *sql.DB) {
+	const addr = ":8080"
+	fmt.Println("serving on", addr)
+	if err := http.ListenAndServe(addr, web.NewServer(db)); err != nil {
+		fmt.Println("serve failed:", err)
+	}
+}
+
+func runIngest(db *sql.DB) {
 	locations, err := database.GetActiveLocations(db)
 	if err != nil {
 		fmt.Println("load locations failed:", err)
