@@ -1,0 +1,40 @@
+{{define "content"}}
+{{if .SelectedDay}}
+<p><a href="/">&larr; Show today &amp; tomorrow</a></p>
+{{end}}
+{{if .Locations}}
+{{range .Locations}}
+<section class="location">
+	<h2>{{.Location.Name}}</h2>
+
+	<div class="hero-row">
+		{{range .Hero}}
+		<article class="card hero">
+			<div class="emoji">{{.Emoji}}</div>
+			<h3>{{.Label}}</h3>
+			<p class="condition">{{.Condition}}</p>
+			<p class="temps">{{.MaxTemp}} / {{.MinTemp}}</p>
+			<dl class="detail">
+				<dt>Humidity</dt><dd>{{.Humidity}}</dd>
+				<dt>Precipitation</dt><dd>{{.PrecipitationMM}}</dd>
+				<dt>Chance of rain</dt><dd>{{.PrecipitationProbability}}</dd>
+			</dl>
+		</article>
+		{{end}}
+	</div>
+
+	<div class="strip-row">
+		{{range .Strip}}
+		<a href="/?day={{.Date}}" class="card day{{if .Selected}} selected{{end}}">
+			<div class="emoji">{{.Emoji}}</div>
+			<div class="label">{{.Label}}</div>
+			<div class="temps">{{.MaxTemp}} / {{.MinTemp}}</div>
+		</a>
+		{{end}}
+	</div>
+</section>
+{{end}}
+{{else}}
+<p>No active locations yet.</p>
+{{end}}
+{{end}}

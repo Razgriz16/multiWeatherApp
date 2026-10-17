@@ -1,0 +1,78 @@
+/* app-specific overrides on top of Pico.css */
+
+.location {
+	margin-bottom: 2.5rem;
+}
+
+.hero-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 1rem;
+	margin-bottom: 1rem;
+}
+
+.card.hero {
+	text-align: center;
+}
+
+.card.hero .emoji {
+	font-size: 3rem;
+}
+
+.card.hero .temps {
+	font-size: 1.5rem;
+	font-weight: bold;
+}
+
+.card.hero .detail {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.25rem 1rem;
+	text-align: left;
+	margin: 1rem 0 0;
+	font-size: 0.9rem;
+}
+
+.card.hero .detail dt {
+	color: var(--pico-muted-color);
+}
+
+.card.hero .detail dd {
+	margin: 0;
+	font-weight: bold;
+	text-align: right;
+}
+
+.strip-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+	gap: 0.5rem;
+}
+
+a.card.day {
+	text-decoration: none;
+	color: inherit;
+	text-align: center;
+	padding: 0.75rem 0.5rem;
+	border: 1px solid var(--pico-muted-border-color);
+	border-radius: var(--pico-border-radius);
+}
+
+a.card.day.selected {
+	border-color: var(--pico-primary);
+	border-width: 2px;
+}
+
+a.card.day .emoji {
+	font-size: 1.5rem;
+}
+
+a.card.day .label {
+	font-weight: bold;
+	font-size: 0.85rem;
+}
+
+a.card.day .temps {
+	font-size: 0.85rem;
+	color: var(--pico-muted-color);
+}
