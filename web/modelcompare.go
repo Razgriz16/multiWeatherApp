@@ -21,18 +21,28 @@ type chartData struct {
 	Series []chartSeries `json:"series"`
 }
 
-// buildHourlyChart shapes one day's aggregate hours into chart data with
-// a single "Temperature" series — the hero chart at the top of the
-// day-detail page, in the same {labels, series} shape as the model
-// comparison chart below it.
-func buildHourlyChart(hours []database.ForecastHour) chartData {
+// heroChartData is the "Today's Forecast" chart's payload: one
+// hour-aligned temperature line plus precipitation (mm) for a bar
+// overlay, so you can see at a glance when it rains and how much —
+// distinct from the model comparison chart's job of comparing sources.
+type heroChartData struct {
+	Labels []string   `json:"labels"`
+	Temps  []*float64 `json:"temps"`
+	Precip []*float64 `json:"precip"`
+}
+
+// buildHourlyChart shapes one day's aggregate hours into the Today's
+// Forecast chart's data.
+func buildHourlyChart(hours []database.ForecastHour) heroChartData {
 	labels := make([]string, len(hours))
 	temps := make([]*float64, len(hours))
+	precip := make([]*float64, len(hours))
 	for i, h := range hours {
 		labels[i] = hourLabel(h.ValidTime)
 		temps[i] = h.Temperature
+		precip[i] = h.PrecipitationMM
 	}
-	return chartData{Labels: labels, Series: []chartSeries{{Name: "Temperature", Temps: temps}}}
+	return heroChartData{Labels: labels, Temps: temps, Precip: precip}
 }
 
 // buildModelComparison aligns the aggregate's and each source's hourly

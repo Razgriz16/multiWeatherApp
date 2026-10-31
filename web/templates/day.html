@@ -16,6 +16,7 @@
 	</article>
 
 	<div class="chart-wrap">
+		<h3>Today's Forecast</h3>
 		<canvas id="hero-chart" height="220"></canvas>
 	</div>
 
@@ -45,6 +46,47 @@
 (function () {
 	var colors = ["#f8f8ff", "#0984e3", "#d63031", "#00b894"];
 
+	function renderHeroChart(canvasId, raw) {
+		new Chart(document.getElementById(canvasId), {
+			type: "line",
+			data: {
+				labels: raw.labels,
+				datasets: [
+					{
+						type: "bar",
+						label: "Precipitation (mm)",
+						data: raw.precip,
+						backgroundColor: "rgba(9, 132, 227, 0.35)",
+						yAxisID: "precip",
+					},
+					{
+						type: "line",
+						label: "Temperature",
+						data: raw.temps,
+						spanGaps: false,
+						borderColor: colors[0],
+						borderWidth: 3,
+						pointRadius: 2,
+						tension: 0.2,
+						yAxisID: "temp",
+					},
+				],
+			},
+			options: {
+				scales: {
+					temp: { title: { display: true, text: "Temperature (°C)" } },
+					precip: {
+						position: "right",
+						title: { display: true, text: "Precipitation (mm)" },
+						grid: { drawOnChartArea: false },
+						beginAtZero: true,
+					},
+					x: { title: { display: true, text: "Hour of day" } },
+				},
+			},
+		});
+	}
+
 	function renderLineChart(canvasId, raw) {
 		new Chart(document.getElementById(canvasId), {
 			type: "line",
@@ -72,7 +114,7 @@
 		});
 	}
 
-	renderLineChart("hero-chart", {{.HeroChart}});
+	renderHeroChart("hero-chart", {{.HeroChart}});
 	renderLineChart("model-chart", {{.ModelCompare}});
 })();
 </script>
