@@ -6,6 +6,7 @@ package web
 import (
 	"database/sql"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -126,18 +127,31 @@ func dayDetailHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		modelReadings, err := database.ModelReadingsForDay(db, id, date)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		chartJSON, err := json.Marshal(buildModelComparison(dayHours, modelReadings))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		data := struct {
-			Title     string
-			Location  model.Location
-			Day       dayCard
-			Sparkline template.HTML
-			Hours     []hourCard
+			Title        string
+			Location     model.Location
+			Day          dayCard
+			Sparkline    template.HTML
+			Hours        []hourCard
+			ModelCompare template.JS
 		}{
-			Title:     "multiWeatherApp",
-			Location:  loc,
-			Day:       days[0],
-			Sparkline: template.HTML(buildSparkline(dayHours)),
-			Hours:     buildHourCards(dayHours),
+			Title:        "multiWeatherApp",
+			Location:     loc,
+			Day:          days[0],
+			Sparkline:    template.HTML(buildSparkline(dayHours)),
+			Hours:        buildHourCards(dayHours),
+			ModelCompare: template.JS(chartJSON),
 		}
 
 		if err := dayTemplate.ExecuteTemplate(w, "layout", data); err != nil {
