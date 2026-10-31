@@ -15,9 +15,9 @@
 		</dl>
 	</article>
 
-	{{if .Sparkline}}
-	<div class="sparkline-wrap">{{.Sparkline}}</div>
-	{{end}}
+	<div class="chart-wrap">
+		<canvas id="hero-chart" height="220"></canvas>
+	</div>
 
 	<div class="hour-list">
 		{{range .Hours}}
@@ -43,32 +43,37 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
 (function () {
-	var raw = {{.ModelCompare}};
-	var colors = ["#2d3436", "#0984e3", "#d63031", "#00b894"];
-	new Chart(document.getElementById("model-chart"), {
-		type: "line",
-		data: {
-			labels: raw.labels,
-			datasets: raw.series.map(function (s, i) {
-				var isAggregate = s.name === "Aggregate";
-				return {
-					label: s.name,
-					data: s.temps,
-					spanGaps: false,
-					borderColor: colors[i % colors.length],
-					borderWidth: isAggregate ? 3 : 1.5,
-					pointRadius: 2,
-					tension: 0.2,
-				};
-			}),
-		},
-		options: {
-			scales: {
-				y: { title: { display: true, text: "Temperature (°C)" } },
-				x: { title: { display: true, text: "Hour of day" } },
+	var colors = ["#f8f8ff", "#0984e3", "#d63031", "#00b894"];
+
+	function renderLineChart(canvasId, raw) {
+		new Chart(document.getElementById(canvasId), {
+			type: "line",
+			data: {
+				labels: raw.labels,
+				datasets: raw.series.map(function (s, i) {
+					var isAggregate = s.name === "Aggregate";
+					return {
+						label: s.name,
+						data: s.temps,
+						spanGaps: false,
+						borderColor: colors[i % colors.length],
+						borderWidth: isAggregate ? 3 : 1.5,
+						pointRadius: 2,
+						tension: 0.2,
+					};
+				}),
 			},
-		},
-	});
+			options: {
+				scales: {
+					y: { title: { display: true, text: "Temperature (°C)" } },
+					x: { title: { display: true, text: "Hour of day" } },
+				},
+			},
+		});
+	}
+
+	renderLineChart("hero-chart", {{.HeroChart}});
+	renderLineChart("model-chart", {{.ModelCompare}});
 })();
 </script>
 {{end}}

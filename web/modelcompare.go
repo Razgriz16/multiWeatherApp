@@ -21,6 +21,20 @@ type chartData struct {
 	Series []chartSeries `json:"series"`
 }
 
+// buildHourlyChart shapes one day's aggregate hours into chart data with
+// a single "Temperature" series — the hero chart at the top of the
+// day-detail page, in the same {labels, series} shape as the model
+// comparison chart below it.
+func buildHourlyChart(hours []database.ForecastHour) chartData {
+	labels := make([]string, len(hours))
+	temps := make([]*float64, len(hours))
+	for i, h := range hours {
+		labels[i] = hourLabel(h.ValidTime)
+		temps[i] = h.Temperature
+	}
+	return chartData{Labels: labels, Series: []chartSeries{{Name: "Temperature", Temps: temps}}}
+}
+
 // buildModelComparison aligns the aggregate's and each source's hourly
 // temperatures to one shared set of hour labels (taken from the
 // aggregate, which is already complete and chronologically ordered),

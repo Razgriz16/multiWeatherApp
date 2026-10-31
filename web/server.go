@@ -138,19 +138,25 @@ func dayDetailHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		heroChartJSON, err := json.Marshal(buildHourlyChart(dayHours))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		data := struct {
 			Title        string
 			Location     model.Location
 			Day          dayCard
-			Sparkline    template.HTML
 			Hours        []hourCard
+			HeroChart    template.JS
 			ModelCompare template.JS
 		}{
 			Title:        "multiWeatherApp",
 			Location:     loc,
 			Day:          days[0],
-			Sparkline:    template.HTML(buildSparkline(dayHours)),
 			Hours:        buildHourCards(dayHours),
+			HeroChart:    template.JS(heroChartJSON),
 			ModelCompare: template.JS(chartJSON),
 		}
 
