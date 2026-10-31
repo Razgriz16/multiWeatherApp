@@ -1,0 +1,36 @@
+{{define "content"}}
+<p><a href="/?day={{.Day.Date}}">&larr; Back to {{.Location.Name}}</a></p>
+
+<section class="location">
+	<h2>{{.Location.Name}} — {{.Day.Label}}</h2>
+
+	<article class="card hero">
+		<div class="emoji">{{.Day.Emoji}}</div>
+		<p class="condition">{{.Day.Condition}}</p>
+		<p class="temps">{{.Day.MaxTemp}} / {{.Day.MinTemp}}</p>
+		<dl class="detail">
+			<dt>Humidity</dt><dd>{{.Day.Humidity}}</dd>
+			<dt>Precipitation</dt><dd>{{.Day.PrecipitationMM}}</dd>
+			<dt>Chance of rain</dt><dd>{{.Day.PrecipitationProbability}}</dd>
+		</dl>
+	</article>
+
+	{{if .Sparkline}}
+	<div class="sparkline-wrap">{{.Sparkline}}</div>
+	{{end}}
+
+	<div class="hour-list">
+		{{range .Hours}}
+		<details>
+			<summary>{{.Time}} &nbsp;{{.Emoji}}&nbsp; {{.Temperature}}</summary>
+			<dl class="detail">
+				<dt>Condition</dt><dd>{{.Condition}}</dd>
+				<dt>Humidity</dt><dd>{{.Humidity}}</dd>
+				<dt>Precipitation</dt><dd>{{.PrecipitationMM}}</dd>
+				<dt>Chance of rain</dt><dd>{{.PrecipitationProbability}}</dd>
+			</dl>
+		</details>
+		{{end}}
+	</div>
+</section>
+{{end}}

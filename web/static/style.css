@@ -43,6 +43,68 @@
 	text-align: right;
 }
 
+.card.hero .hour-link {
+	margin-top: 0.75rem;
+	font-size: 0.85rem;
+}
+
+.sparkline-wrap {
+	margin: 1.5rem 0;
+}
+
+.sparkline {
+	width: 100%;
+	height: auto;
+}
+
+.sparkline .temp-line {
+	fill: none;
+	stroke: var(--pico-primary);
+	stroke-width: 2;
+}
+
+.sparkline .axis {
+	stroke: var(--pico-muted-color);
+	stroke-width: 1;
+}
+
+.sparkline .ref {
+	stroke: var(--pico-muted-border-color);
+	stroke-width: 1;
+	stroke-dasharray: 4 3;
+}
+
+.sparkline .axis-label {
+	fill: var(--pico-muted-color);
+	font-size: 11px;
+	text-anchor: middle;
+}
+
+.sparkline .axis-label-y {
+	text-anchor: end;
+}
+
+.sparkline .axis-title {
+	fill: var(--pico-color);
+	font-size: 12px;
+	font-weight: bold;
+	text-anchor: middle;
+}
+
+.hour-list details {
+	border-bottom: 1px solid var(--pico-muted-border-color);
+	padding: 0.5rem 0;
+}
+
+.hour-list summary {
+	cursor: pointer;
+	font-weight: bold;
+}
+
+.hour-list .detail {
+	margin-top: 0.5rem;
+}
+
 .strip-row {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));

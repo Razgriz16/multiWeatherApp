@@ -202,3 +202,58 @@ func formatUnit(v *float64, format string) string {
 	}
 	return fmt.Sprintf(format, *v)
 }
+
+// hourCard is one hour's detail row for the day-detail page's expandable list.
+type hourCard struct {
+	Time                     string // "HH:MM"
+	Emoji                    string
+	Temperature              string
+	Humidity                 string
+	PrecipitationMM          string
+	PrecipitationProbability string
+	Condition                string
+}
+
+// hoursForDate filters hours down to those falling on a single calendar date.
+func hoursForDate(hours []database.ForecastHour, date string) []database.ForecastHour {
+	var matched []database.ForecastHour
+	for _, h := range hours {
+		if len(h.ValidTime) >= 10 && h.ValidTime[:10] == date {
+			matched = append(matched, h)
+		}
+	}
+	return matched
+}
+
+func buildHourCards(hours []database.ForecastHour) []hourCard {
+	cards := make([]hourCard, len(hours))
+	for i, h := range hours {
+		var code int64
+		var ok bool
+		if h.ConditionCode != nil {
+			code, ok = *h.ConditionCode, true
+		}
+		var condition string
+		if h.Condition != nil {
+			condition = *h.Condition
+		}
+		cards[i] = hourCard{
+			Time:                     hourLabel(h.ValidTime),
+			Emoji:                    conditionEmoji(code, ok),
+			Temperature:              formatUnit(h.Temperature, "%.0f°C"),
+			Humidity:                 formatUnit(h.Humidity, "%.0f%%"),
+			PrecipitationMM:          formatUnit(h.PrecipitationMM, "%.1fmm"),
+			PrecipitationProbability: formatUnit(h.PrecipitationProbability, "%.0f%%"),
+			Condition:                condition,
+		}
+	}
+	return cards
+}
+
+// hourLabel extracts "HH:MM" from an ISO-ish "YYYY-MM-DDTHH:MM" valid_time.
+func hourLabel(validTime string) string {
+	if len(validTime) < 16 {
+		return validTime
+	}
+	return validTime[11:16]
+}

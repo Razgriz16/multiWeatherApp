@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 
 	"multiweather/database"
 	"multiweather/model"
@@ -20,12 +21,16 @@ var layoutRaw string
 //go:embed templates/index.html
 var indexRaw string
 
+//go:embed templates/day.html
+var dayRaw string
+
 //go:embed static/style.css
 var styleRaw string
 
 // Template text comes from the go:embed vars above — baked into the
 // binary at build time, not read from disk at startup.
 var indexTemplate = parsePage(indexRaw)
+var dayTemplate = parsePage(dayRaw)
 
 func parsePage(pageRaw string) *template.Template {
 	t := template.Must(template.New("layout").Parse(layoutRaw))
@@ -36,6 +41,7 @@ func parsePage(pageRaw string) *template.Template {
 func NewServer(db *sql.DB) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", indexHandler(db))
+	mux.HandleFunc("GET /location/{id}/day/{date}", dayDetailHandler(db))
 	mux.HandleFunc("GET /static/style.css", staticCSSHandler)
 	return mux
 }
@@ -87,6 +93,54 @@ func indexHandler(db *sql.DB) http.HandlerFunc {
 		}{"multiWeatherApp", views, selectedDay}
 
 		if err := indexTemplate.ExecuteTemplate(w, "layout", data); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+func dayDetailHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		if err != nil {
+			http.Error(w, "invalid location id", http.StatusBadRequest)
+			return
+		}
+		date := r.PathValue("date")
+
+		loc, err := database.GetLocation(db, id)
+		if err != nil {
+			http.Error(w, "location not found", http.StatusNotFound)
+			return
+		}
+
+		hours, err := database.LatestForecast(db, id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		dayHours := hoursForDate(hours, date)
+		days := rollupDaily(dayHours)
+		if len(days) == 0 {
+			http.Error(w, "no forecast for that day", http.StatusNotFound)
+			return
+		}
+
+		data := struct {
+			Title     string
+			Location  model.Location
+			Day       dayCard
+			Sparkline template.HTML
+			Hours     []hourCard
+		}{
+			Title:     "multiWeatherApp",
+			Location:  loc,
+			Day:       days[0],
+			Sparkline: template.HTML(buildSparkline(dayHours)),
+			Hours:     buildHourCards(dayHours),
+		}
+
+		if err := dayTemplate.ExecuteTemplate(w, "layout", data); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

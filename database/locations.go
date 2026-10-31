@@ -37,6 +37,20 @@ func AddLocation(db *sql.DB, p model.Location) (inserted bool, err error) {
 	return n == 1, nil
 }
 
+// GetLocation returns a single location by ID.
+func GetLocation(db *sql.DB, id int64) (model.Location, error) {
+	var loc model.Location
+	err := db.QueryRow(
+		`SELECT id, name, latitude, longitude, timezone, active, notify, created_at
+		 FROM locations WHERE id = ?`,
+		id,
+	).Scan(
+		&loc.ID, &loc.Name, &loc.Latitude, &loc.Longitude,
+		&loc.Timezone, &loc.Active, &loc.Notify, &loc.CreatedAt,
+	)
+	return loc, err
+}
+
 func GetActiveLocations(db *sql.DB) ([]model.Location, error) {
 	rows, err := db.Query(
 		`SELECT id, name, latitude, longitude, timezone, active, notify, created_at

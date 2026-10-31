@@ -7,6 +7,7 @@
 <section class="location">
 	<h2>{{.Location.Name}}</h2>
 
+	{{$locID := .Location.ID}}
 	<div class="hero-row">
 		{{range .Hero}}
 		<article class="card hero">
@@ -19,6 +20,7 @@
 				<dt>Precipitation</dt><dd>{{.PrecipitationMM}}</dd>
 				<dt>Chance of rain</dt><dd>{{.PrecipitationProbability}}</dd>
 			</dl>
+			<p class="hour-link"><a href="/location/{{$locID}}/day/{{.Date}}">Hour-by-hour &rarr;</a></p>
 		</article>
 		{{end}}
 	</div>
